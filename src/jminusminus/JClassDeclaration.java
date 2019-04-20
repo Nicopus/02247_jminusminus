@@ -291,13 +291,13 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             context.writeToStdOut(p);
         }
         if (implementTypes != null) {
-        	p.println("<Implements>");
+        	p.println("<Interfaces>");
             p.indentRight();
             for (Type type : implementTypes) {
                 p.printf("<Interface name=\"%s\"/>\n", type.toString());
             }
             p.indentLeft();
-            p.println("</Implements>");
+            p.println("</Interfaces>");
         }
         
         if (mods != null) {

@@ -34,7 +34,7 @@ public class JForEachStatement extends JStatement {
         p.printf("</VariableDeclarator>\n");
         p.printf("<Identifier>\n");
         p.indentRight();
-        p.printf(iden.toString() + "\n");
+        p.printf("<Identifier name=\"%s\"/>\n", iden.toString());
         p.indentLeft();
         p.printf("</Identifier>\n");
         p.printf("</Statement>\n");

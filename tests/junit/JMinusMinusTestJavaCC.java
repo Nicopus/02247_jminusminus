@@ -45,6 +45,11 @@ public class JMinusMinusTestJavaCC extends TestCase {
 
                 // true even if a single test fails
                 errorHasOccurred |= JavaCCMain.errorHasOccurred();
+                if (JavaCCMain.errorHasOccurred()) {
+                	System.out
+                    .printf("Failed pass files: %s ...\n\n", files[i]
+                            .toString());
+                }
             }
         }
 
