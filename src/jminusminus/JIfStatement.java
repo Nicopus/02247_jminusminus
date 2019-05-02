@@ -73,11 +73,15 @@ class JIfStatement extends JStatement {
     public void codegen(CLEmitter output) {
         String elseLabel = output.createLabel();
         String endLabel = output.createLabel();
+        //Go to elseLabel if condition is false
         condition.codegen(output, elseLabel, false);
         thenPart.codegen(output);
+        
         if (elsePart != null) {
+        	//When thenPart done, jump  (over else elsePart) til after endLabel
             output.addBranchInstruction(GOTO, endLabel);
         }
+        // 
         output.addLabel(elseLabel);
         if (elsePart != null) {
             elsePart.codegen(output);

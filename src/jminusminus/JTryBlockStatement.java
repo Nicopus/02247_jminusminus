@@ -7,19 +7,51 @@ public class JTryBlockStatement extends JStatement {
 
 	private JBlock body;
 	private ArrayList<JFormalParameter> cParams;
-	private ArrayList<JBlock> cBlock;
+	private ArrayList<JBlock> cBlocks;
 	private JBlock fBlock;
+	private LocalContext context;
 
-	public JTryBlockStatement(int line, JBlock body, ArrayList<JFormalParameter> cParams, ArrayList<JBlock> cBlock,
+	public JTryBlockStatement(int line, JBlock body, ArrayList<JFormalParameter> cParams, ArrayList<JBlock> cBlocks,
 			JBlock fBlock) {
 		super(line);
 		this.body = body;
 		this.cParams = cParams;
-		this.cBlock = cBlock;
+		this.cBlocks = cBlocks;
 		this.fBlock = fBlock;
 	}
 
 	public JStatement analyze(Context context) {
+		this.context = new LocalContext(context);
+		body.analyze(this.context);
+		
+		//Check if exception is allready been caught
+		for (JFormalParameter param1 : cParams) {
+			for (JFormalParameter param2 : cParams) {
+				if (param1 != param2 && param1.type() == param2.type()) {
+					JAST.compilationUnit.reportSemanticError(line,
+		                    "%s has allready been caught", param2.type().toString());
+				}
+			}
+		}
+		
+		
+		for (int i = 0; i < cParams.size(); i++) {
+			LocalVariableDefn defn = new LocalVariableDefn(cParams.get(i).type(), this.context.nextOffset());
+			defn.initialize();
+			this.context.addEntry(cParams.get(i).line(), cParams.get(i).name(), defn);
+			
+			//Check for missing catch block
+			if (cBlocks.size() < (i + 1)) {
+				JAST.compilationUnit.reportSemanticError(line,
+	                    "Missing catch block");
+			} 
+//			else {
+//				cBlocks.get(i).analyze(this.context);
+//			}
+		}
+		
+		fBlock.analyze(this.context);
+		
 		return this;
 	}
 
@@ -44,7 +76,7 @@ public class JTryBlockStatement extends JStatement {
 			p.printf("</CatchParameter>\n");
 			p.printf("<CatchBlock>\n");
 			p.indentRight();
-			cBlock.get(i).writeToStdOut(p);
+			cBlocks.get(i).writeToStdOut(p);
 			p.indentLeft();
 			p.printf("</CatchBlock>\n");
 		}

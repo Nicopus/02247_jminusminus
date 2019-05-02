@@ -210,7 +210,11 @@ class JLogicalOrOp extends JBooleanBinaryExpression {
     }
 
     public JExpression analyze(Context context) {
-
+    	lhs = (JExpression) lhs.analyze(context);
+        rhs = (JExpression) rhs.analyze(context);
+        lhs.type().mustMatchExpected(line(), Type.BOOLEAN);
+        rhs.type().mustMatchExpected(line(), Type.BOOLEAN);
+        type = Type.BOOLEAN;
         return this;
     }
 

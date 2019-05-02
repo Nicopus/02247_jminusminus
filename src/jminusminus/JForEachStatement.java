@@ -6,10 +6,10 @@ import static jminusminus.CLConstants.*;
 public class JForEachStatement extends JStatement {
 
 	private JVariableDeclarator vdecl;
-	private TypeName iden;
+	private JExpression iden;
 	private JStatement body;
 
-	public JForEachStatement(int line, JVariableDeclarator vecl, TypeName iden, JStatement body) {
+	public JForEachStatement(int line, JVariableDeclarator vecl, JExpression iden, JStatement body) {
 		super(line);
 		this.vdecl = vecl;
 		this.iden = iden;
@@ -17,6 +17,16 @@ public class JForEachStatement extends JStatement {
 	}
 	
     public JStatement analyze(Context context) {
+    	vdecl.analyze(context);
+    	iden.analyze(context);
+    	body.analyze(context);
+    	
+    	if (!Type.ITERABLE.isJavaAssignableFrom(iden.type()) && !iden.type().isArray()) {
+    		JAST.compilationUnit.reportSemanticError(line,
+                    "Local variable must be of type array or itterable: \"%s\"", iden.type().toString());
+        }
+    	
+    	vdecl.type().mustMatchExpected(line, iden.type().componentType());
     	return this;
     }
     
@@ -37,11 +47,11 @@ public class JForEachStatement extends JStatement {
         p.printf("<Identifier name=\"%s\"/>\n", iden.toString());
         p.indentLeft();
         p.printf("</Identifier>\n");
-        p.printf("</Statement>\n");
+        p.printf("</Body>\n");
         p.indentRight();
         body.writeToStdOut(p);
         p.indentLeft();
-        p.printf("</Statement>\n"); 
+        p.printf("</Body>\n"); 
         p.indentLeft();
         p.printf("<JForEachStatement>\n");
         

@@ -73,7 +73,43 @@ public class JInterfaceDecleration extends JAST implements JTypeDecl {
     }
     
     public void preAnalyze(Context context) {
-    	
+        // Construct a class context
+        this.context = new ClassContext(this, context);
+
+        // Resolve superclass
+        superType = superType.resolve(this.context);
+        
+        // Creating a partial class in memory can result in a
+        // java.lang.VerifyError if the semantics below are
+        // violated, so we can't defer these checks to analyze()
+        thisType.checkAccess(line, superType);
+        if (superType != null && !superType.isInterface()) {
+            JAST.compilationUnit.reportSemanticError(line,
+                    "Cannot extend a non interface type: %s", superType.toString());
+        }
+        
+        // Create the (partial) class
+        CLEmitter partial = new CLEmitter(false);
+
+        // Add the class header to the partial class
+        String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
+                : JAST.compilationUnit.packageName() + "/" + name;
+        partial.addClass(mods, qualifiedName, superType.jvmName(), null, false);
+        
+        // Pre-analyze the members and add them to the partial
+        // class
+        for (JMember member : interfaceBlock) {
+            member.preAnalyze(this.context, partial);
+        }
+        
+        
+        // Get the Class rep for the (partial) class and make it
+        // the
+        // representation for this type
+        Type id = this.context.lookupType(name);
+        if (id != null && !JAST.compilationUnit.errorHasOccurred()) {
+            id.setClassRep(partial.toClass());
+        }
     }
     
     public JAST analyze(Context context) {

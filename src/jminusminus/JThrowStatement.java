@@ -1,5 +1,6 @@
 package jminusminus;
 
+import java.util.Set;
 
 public class JThrowStatement extends JStatement {
 	
@@ -11,6 +12,13 @@ public class JThrowStatement extends JStatement {
 	}
 	
     public JStatement analyze(Context context) {
+    	MethodContext methodContext = context.methodContext();
+    	
+    	expr.analyze(context);
+    	System.out.println(expr.type().toString());
+    	Set<Type> throwTypes = methodContext.methodThrowTypes();
+    	expr.type().mustMatchOneOf(line(), throwTypes.toArray(new Type[throwTypes.size()]));
+    	
     	return this;
     }
     

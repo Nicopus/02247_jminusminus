@@ -3,6 +3,8 @@
 package jminusminus;
 
 import java.util.ArrayList;
+import java.util.Set;
+
 import static jminusminus.CLConstants.*;
 
 /**
@@ -42,6 +44,14 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
     {
         super(line, mods, name, Type.CONSTRUCTOR, params, body);
     }
+    
+    public JConstructorDeclaration(int line, ArrayList<String> mods,
+            String name, ArrayList<JFormalParameter> params, JBlock body, Set<Type> throwTypes)
+
+    {
+        super(line, mods, name, Type.CONSTRUCTOR, params, body, throwTypes);
+    }
+
 
     /**
      * Declare this constructor in the parent (class) context.
@@ -90,7 +100,7 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
         definingClass = 
 	    (JClassDeclaration) context.classContext().definition();
         MethodContext methodContext =
-            new MethodContext(context, isStatic, returnType);
+            new MethodContext(context, isStatic, returnType, throwTypes);
         this.context = methodContext;
 
         if (!isStatic) {

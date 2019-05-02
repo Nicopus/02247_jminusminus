@@ -26,7 +26,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     /** Super class type. */
     private Type superType;
     
-    /** Implements interface type. */
+    /** Implements interface types. */
     private ArrayList<Type> implementTypes;
 
     /** This class type. */
@@ -180,7 +180,12 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         // Add the class header to the partial class
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        partial.addClass(mods, qualifiedName, superType.jvmName(), null, false);
+        
+        ArrayList<String> interfaceJvmNames = new ArrayList<String>();
+        for (Type type : implementTypes) {
+        	interfaceJvmNames.add(type.jvmName());
+        }
+        partial.addClass(mods, qualifiedName, superType.jvmName(), interfaceJvmNames, false);
 
         // Pre-analyze the members and add them to the partial
         // class

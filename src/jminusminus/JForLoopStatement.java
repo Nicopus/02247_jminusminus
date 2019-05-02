@@ -19,6 +19,10 @@ public class JForLoopStatement extends JStatement {
 	}
 	
     public JStatement analyze(Context context) {
+    	forInit.analyze(context);
+    	forExpr.analyze(context);
+    	forUpdate.analyze(context);
+    	body.analyze(context);
     	return this;
     }
     

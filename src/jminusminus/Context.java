@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 
+
 /**
  * A Context encapsulates the environment in which an AST is analyzed. It
  * represents a scope; the scope of a variable is captured by its context. It's
@@ -385,6 +386,10 @@ class MethodContext extends LocalContext {
 
     /** Does (non-void) method have at least one return? */
     private boolean hasReturnStatement = false;
+    
+    /** Throw types of this method */
+    private Set<Type> methodThrowTypes;
+    
 
     /**
      * Construct a method context.
@@ -398,10 +403,11 @@ class MethodContext extends LocalContext {
      */
 
     public MethodContext(Context surrounding, boolean isStatic,
-            Type methodReturnType) {
+            Type methodReturnType, Set<Type> methodThrowTypes) {
         super(surrounding);
         this.isStatic = isStatic;
         this.methodReturnType = methodReturnType;
+        this.methodThrowTypes = methodThrowTypes;
         offset = 0;
     }
 
@@ -441,6 +447,10 @@ class MethodContext extends LocalContext {
 
     public Type methodReturnType() {
         return methodReturnType;
+    }
+    
+    public Set<Type> methodThrowTypes() {
+    	return methodThrowTypes;
     }
 
     /**

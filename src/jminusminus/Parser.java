@@ -3,6 +3,8 @@
 package jminusminus;
 
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import static jminusminus.TokenKind.*;
 
 /**
@@ -602,9 +604,10 @@ public class Parser {
             mustBe(IDENTIFIER);
             String name = scanner.previousToken().image();
             ArrayList<JFormalParameter> params = formalParameters();
+            Set<Type> throwTypes = throwTypes();
             JBlock body = block();
             memberDecl = new JConstructorDeclaration(line, mods, name, params,
-                    body);
+                    body, throwTypes);
         } else if (have(LCURLY)) {
 
 			ArrayList<JStatement> statements = new ArrayList<JStatement>();
@@ -621,10 +624,10 @@ public class Parser {
                 mustBe(IDENTIFIER);
                 String name = scanner.previousToken().image();
                 ArrayList<JFormalParameter> params = formalParameters();
-                ArrayList<TypeName> throwsIdents = throwsIdentifiers();
+                Set<Type> throwTypes = throwTypes();
                 JBlock body = have(SEMI) ? null : block();
                 memberDecl = new JMethodDeclaration(line, mods, name, type,
-                        params, body, throwsIdents);
+                        params, body, throwTypes);
             } else {
                 type = type();
                 if (seeIdentLParen()) {
@@ -632,10 +635,10 @@ public class Parser {
                     mustBe(IDENTIFIER);
                     String name = scanner.previousToken().image();
                     ArrayList<JFormalParameter> params = formalParameters();
-                    ArrayList<TypeName> throwsIdents = throwsIdentifiers();
+                    Set<Type> throwTypes = throwTypes();
                     JBlock body = have(SEMI) ? null : block();
                     memberDecl = new JMethodDeclaration(line, mods, name, type,
-                            params, body, throwsIdents);
+                            params, body, throwTypes);
                 } else {
                     // Field
                     memberDecl = new JFieldDeclaration(line, mods,
@@ -658,8 +661,8 @@ public class Parser {
 			mustBe(IDENTIFIER);
 			String name = scanner.previousToken().image();
 			ArrayList<JFormalParameter> params = formalParameters();
-			ArrayList<TypeName> throwsIdents = throwsIdentifiers();
-			memberDecl = new JMethodDeclaration(line, mods, name, type, params, null, throwsIdents);
+			Set<Type> throwTypes = throwTypes();
+			memberDecl = new JMethodDeclaration(line, mods, name, type, params, null, throwTypes);
 			mustBe(SEMI);
 		} else {
 			type = type();
@@ -667,24 +670,23 @@ public class Parser {
 			mustBe(IDENTIFIER);
 			String name = scanner.previousToken().image();
 			ArrayList<JFormalParameter> params = formalParameters();
-			ArrayList<TypeName> throwsIdents = throwsIdentifiers();
-			memberDecl = new JMethodDeclaration(line, mods, name, type, params, null, throwsIdents);
+			Set<Type> throwTypes = throwTypes();
+			memberDecl = new JMethodDeclaration(line, mods, name, type, params, null, throwTypes);
 			mustBe(SEMI);
 		}
 		return memberDecl;
 	}
 	
-	private ArrayList<TypeName> throwsIdentifiers() {
-		ArrayList<TypeName> throwIdents = null;
+	private Set<Type> throwTypes() {
+		Set<Type> throwTypes = null;
 		if (have(THROWS)) {
-			throwIdents = new ArrayList<>();
+			throwTypes = new HashSet<Type>();
 			while (see(IDENTIFIER)) {
-				throwIdents.add(qualifiedIdentifier());
+				throwTypes.add(type());
 				have(COMMA);
 			}
 		}
-		
-		return throwIdents;
+		return throwTypes;
 	}
 
     /**
@@ -770,7 +772,7 @@ public class Parser {
 			if (seeForEachStatement()) {
 				JVariableDeclarator vdecl = variableDeclarator(type());
 				mustBe(COL);
-				TypeName iden = qualifiedIdentifier();
+				JExpression iden = expression();
 				mustBe(RPAREN);
 				JStatement body = statement();
 				return new JForEachStatement(line, vdecl, iden, body);

@@ -16,7 +16,6 @@ public class JConditionalExpression extends JExpression {
 	}
 	
 	public void writeToStdOut(PrettyPrinter p) {
-		
 		p.printf("<JConditionalExpression line=\"%d\" type=\"%s\">\n", line(),
 				((type == null) ? "" : type.toString()));
 		p.indentRight();
@@ -40,8 +39,12 @@ public class JConditionalExpression extends JExpression {
 	}
 	
 	public JExpression analyze(Context context) {
-
-		
+		cond = (JExpression) cond.analyze(context);
+		cond.type().mustMatchExpected(line(), Type.BOOLEAN);
+		thenBranch = (JExpression) thenBranch.analyze(context);
+		elseBranch = (JExpression) elseBranch.analyze(context);
+		elseBranch.type().mustMatchExpected(line(), thenBranch.type());
+		type = elseBranch.type();
 		return this;
 	}
 	

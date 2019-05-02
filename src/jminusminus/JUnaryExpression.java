@@ -279,6 +279,31 @@ class JPostDecrementOp extends JUnaryExpression {
 
 }
 
+class JPostIncrementOp extends JUnaryExpression {
+
+    public JPostIncrementOp(int line, JExpression arg) {
+        super(line, "post++", arg);
+    }
+
+    public JExpression analyze(Context context) {
+    	if (!(arg instanceof JLhs)) {
+            JAST.compilationUnit.reportSemanticError(line,
+                    "Operand to expr++ must have an LValue.");
+            type = Type.ANY;
+        } else {
+            arg = (JExpression) arg.analyze(context);
+            arg.type().mustMatchExpected(line(), Type.INT);
+            type = Type.INT;
+        }
+        return this;
+    }
+
+    public void codegen(CLEmitter output) {
+    	 
+    }
+
+}
+
 class JPreDecrementOp extends JUnaryExpression {
 
     public JPreDecrementOp(int line, JExpression arg) {
@@ -286,7 +311,15 @@ class JPreDecrementOp extends JUnaryExpression {
     }
 
     public JExpression analyze(Context context) {
-        
+    	if (!(arg instanceof JLhs)) {
+            JAST.compilationUnit.reportSemanticError(line,
+                    "Operand to --expr must have an LValue.");
+            type = Type.ANY;
+        } else {
+            arg = (JExpression) arg.analyze(context);
+            arg.type().mustMatchExpected(line(), Type.INT);
+            type = Type.INT;
+        }
         return this;
     }
 
@@ -373,51 +406,6 @@ class JPreIncrementOp extends JUnaryExpression {
             }
             ((JLhs) arg).codegenStore(output);
         }
-    }
-
-}
-
-class JPostIncrementOp extends JUnaryExpression {
-
-    public JPostIncrementOp(int line, JExpression arg) {
-        super(line, "post++", arg);
-    }
-
-    public JExpression analyze(Context context) {
-    	if (!(arg instanceof JLhs)) {
-            JAST.compilationUnit.reportSemanticError(line,
-                    "Operand to expr-- must have an LValue.");
-            type = Type.ANY;
-        } else {
-            arg = (JExpression) arg.analyze(context);
-            arg.type().mustMatchExpected(line(), Type.INT);
-            type = Type.INT;
-        }
-        return this;
-    }
-
-    public void codegen(CLEmitter output) {
-    	 if (arg instanceof JVariable) {
-             // A local variable; otherwise analyze() would
-             // have replaced it with an explicit field selection.
-             int offset = ((LocalVariableDefn) ((JVariable) arg).iDefn())
-                     .offset();
-             if (!isStatementExpression) {
-                 // Loading its original rvalue
-                 arg.codegen(output);
-             }
-             output.addIINCInstruction(offset, -1);
-         } else {
-             ((JLhs) arg).codegenLoadLhsLvalue(output);
-             ((JLhs) arg).codegenLoadLhsRvalue(output);
-             if (!isStatementExpression) {
-                 // Loading its original rvalue
-                 ((JLhs) arg).codegenDuplicateRvalue(output);
-             }
-             output.addNoArgInstruction(ICONST_1);
-             output.addNoArgInstruction(IADD);
-             ((JLhs) arg).codegenStore(output);
-         } 
     }
 
 }
