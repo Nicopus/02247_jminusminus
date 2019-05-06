@@ -17,9 +17,11 @@ public class ExceptionHandlers {
     
     public static void main(String[] args) {
         try {
+        	
             int x = Integer.parseInt(args[0]);
             int y = f(x);
             System.out.println(y);
+            
         }
         catch (Exception e) {
             System.out.println(e.getMessage());

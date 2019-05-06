@@ -65,7 +65,7 @@ class JReturnStatement
         } else {
             // Must be a method
             Type returnType = methodContext.methodReturnType();
-	    methodContext.confirmMethodHasReturn();
+            methodContext.confirmMethodHasReturn();
             if (expr != null) {
                 if (returnType == Type.VOID) {
                     // Can't return a value from void method

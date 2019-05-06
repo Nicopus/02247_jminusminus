@@ -103,6 +103,7 @@ class Scanner {
         reserved.put(LONG.image(), LONG);
         reserved.put(NATIVE.image(), NATIVE);
         reserved.put(SHORT.image(), SHORT);
+        reserved.put(SWITCH.image(), SWITCH);
         reserved.put(STRICTFP.image(), STRICTFP);
         reserved.put(SYNC.image(), SYNC);
         reserved.put(THROW.image(), THROW);

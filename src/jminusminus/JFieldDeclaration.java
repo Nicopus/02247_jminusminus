@@ -19,6 +19,18 @@ class JFieldDeclaration extends JAST implements JMember {
     /** Variable initializations. */
     private ArrayList<JStatement> initializations;
 
+	/** Is field static. */
+	protected boolean isStatic;
+
+	/** Is field private. */
+	protected boolean isPrivate;
+	
+	/** Is field public. */
+	protected boolean isPublic;
+	
+	/** Is field final. */
+	protected boolean isFinal;
+
     /**
      * Construct an AST node for a field declaration given the line number,
      * modifiers, and the variable declarators.
@@ -36,6 +48,10 @@ class JFieldDeclaration extends JAST implements JMember {
             ArrayList<JVariableDeclarator> decls) {
         super(line);
         this.mods = mods;
+		this.isStatic = mods.contains("static");
+		this.isPrivate = mods.contains("private");
+		this.isPublic = mods.contains("public");
+		this.isFinal = mods.contains("final");
         this.decls = decls;
         initializations = new ArrayList<JStatement>();
     }
@@ -61,6 +77,29 @@ class JFieldDeclaration extends JAST implements JMember {
      */
 
     public void preAnalyze(Context context, CLEmitter partial) {
+    	if (context instanceof ClassContext) {
+			ClassContext cContext = (ClassContext) context;
+			// Add implicit public, static and final modifiers for interfaces
+			if (cContext.classIsInterface()) {
+				if (isPrivate) {
+					JAST.compilationUnit.reportSemanticError(line(),
+		                    "Interface fields cannot be declared private");
+				}
+				if (!isPublic) {
+					mods.add("public");
+					isPublic = true;
+				}
+				if (!isStatic) {
+					mods.add("static");
+					isStatic = true;
+				}
+				if (!isFinal) {
+					mods.add("final");
+					isFinal = true;
+				}
+			}
+		}
+    	
         // Fields may not be declared abstract.
         if (mods.contains("abstract")) {
             JAST.compilationUnit.reportSemanticError(line(),

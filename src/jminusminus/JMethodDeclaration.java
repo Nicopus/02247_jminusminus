@@ -41,7 +41,13 @@ class JMethodDeclaration extends JAST implements JMember {
 
 	/** Is method private. */
 	protected boolean isPrivate;
-
+	
+	/** Is method public. */
+	protected boolean isPublic;
+	
+	/** Is method final. */
+	protected boolean isFinal;
+	
 	protected Set<Type> throwTypes;
 
 	/**
@@ -70,6 +76,8 @@ class JMethodDeclaration extends JAST implements JMember {
 		this.isAbstract = mods.contains("abstract");
 		this.isStatic = mods.contains("static");
 		this.isPrivate = mods.contains("private");
+		this.isPublic = mods.contains("public");
+		this.isFinal = mods.contains("final");
 		this.throwTypes = throwTypes;
 	}
 
@@ -86,6 +94,8 @@ class JMethodDeclaration extends JAST implements JMember {
 		this.isAbstract = mods.contains("abstract");
 		this.isStatic = mods.contains("static");
 		this.isPrivate = mods.contains("private");
+		this.isPublic = mods.contains("public");
+		this.isFinal = mods.contains("final");
 		this.throwTypes = null;
 	}
 
@@ -98,19 +108,37 @@ class JMethodDeclaration extends JAST implements JMember {
 	 */
 
 	public void preAnalyze(Context context, CLEmitter partial) {
+		if (context instanceof ClassContext) {
+			ClassContext cContext = (ClassContext) context;
+			// Add implicit public and abstract modifiers for interfaces
+			if (cContext.classIsInterface()) {
+				if (!isPublic) {
+					mods.add("public");
+					isPublic = true;
+				}
+				if (!isAbstract) {
+					mods.add("abstract");
+					isAbstract = true;
+				}
+				if (isStatic || isFinal) {
+					JAST.compilationUnit.reportSemanticError(line, "Interface memthods cannot be declared static or final");
+				}
+				
+			}
+		}
+
 		// Resolve types of the formal parameters
 		for (JFormalParameter param : params) {
 			param.setType(param.type().resolve(context));
 		}
-		
+
 		if (throwTypes != null) {
 			for (Type type : throwTypes) {
 				type = type.resolve(context);
-				System.out.println(type.toString());
-		    	if (!Type.THROWABLE.isJavaAssignableFrom(type)) {
-		    		JAST.compilationUnit.reportSemanticError(line,
-		                    "Throw type must be of type Throwable: \"%s\"", type.toString());
-		        }
+				if (!Type.THROWABLE.isJavaAssignableFrom(type)) {
+					JAST.compilationUnit.reportSemanticError(line, "Throw type must be of type Throwable: \"%s\"",
+							type.toString());
+				}
 			}
 		}
 
@@ -126,6 +154,8 @@ class JMethodDeclaration extends JAST implements JMember {
 			JAST.compilationUnit.reportSemanticError(line(), "private method cannot be declared abstract");
 		} else if (isAbstract && isStatic) {
 			JAST.compilationUnit.reportSemanticError(line(), "static method cannot be declared abstract");
+		} else if (isStatic && body == null) {
+			JAST.compilationUnit.reportSemanticError(line(), "static method must have a body");
 		}
 
 		// Compute descriptor
@@ -171,11 +201,7 @@ class JMethodDeclaration extends JAST implements JMember {
 				JAST.compilationUnit.reportSemanticError(line(), "Non-void method must have a return statement");
 			}
 		}
-		
-		
-		
-		
-		
+
 		return this;
 	}
 

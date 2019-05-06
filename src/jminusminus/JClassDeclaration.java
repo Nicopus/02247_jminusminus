@@ -43,6 +43,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
     /** Static (class) fields of this class. */
     private ArrayList<JFieldDeclaration> staticFieldInitializations;
+    
 
     /**
      * Construct an AST node for a class declaration given the line number, list
@@ -160,7 +161,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
     public void preAnalyze(Context context) {
         // Construct a class context
-        this.context = new ClassContext(this, context);
+        this.context = new ClassContext(this, context, false);
 
         // Resolve superclass
         superType = superType.resolve(this.context);
@@ -180,12 +181,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         // Add the class header to the partial class
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        
-        ArrayList<String> interfaceJvmNames = new ArrayList<String>();
-        for (Type type : implementTypes) {
-        	interfaceJvmNames.add(type.jvmName());
-        }
-        partial.addClass(mods, qualifiedName, superType.jvmName(), interfaceJvmNames, false);
+        partial.addClass(mods, qualifiedName, superType.jvmName(), null, false);
 
         // Pre-analyze the members and add them to the partial
         // class

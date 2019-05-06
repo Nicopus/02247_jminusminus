@@ -15,10 +15,15 @@ public class JThrowStatement extends JStatement {
     	MethodContext methodContext = context.methodContext();
     	
     	expr.analyze(context);
-    	System.out.println(expr.type().toString());
-    	Set<Type> throwTypes = methodContext.methodThrowTypes();
-    	expr.type().mustMatchOneOf(line(), throwTypes.toArray(new Type[throwTypes.size()]));
+    	if (!Type.THROWABLE.isJavaAssignableFrom(expr.type())) {
+    		JAST.compilationUnit.reportSemanticError(line,
+                    "Throw type must be of type Throwable: \"%s\"", expr.type().toString());
+        }
     	
+    	//IDE stuff: Check if throw type is declared in method
+    	//Set<Type> throwTypes = methodContext.methodThrowTypes();
+    	//expr.type().mustMatchOneOf(line(), throwTypes.toArray(new Type[throwTypes.size()]));
+   
     	return this;
     }
     

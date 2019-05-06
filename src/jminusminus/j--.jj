@@ -545,15 +545,23 @@ private JClassDeclaration classDeclaration( ArrayList<String> mods ): {
 private JInterfaceDecleration interfaceDecleration(ArrayList<String> mods): {
     int line = 0;
     String name = "";
-    Type superClass = Type.OBJECT;
+    ArrayList<Type> superClasses = new ArrayList<Type>();
+    superClasses.add(Type.NULLTYPE);
     ArrayList<JMember> interfaceBody = null;
 }
 {
     try {
         <INTERFACE> { line = token.beginLine; }
         <IDENTIFIER> { name = token.image; }
-        [ 
-            <EXTENDS> superClass = qualifiedIdentifier() 
+        [
+	        <EXTENDS>
+	        {
+	           	superClasses = new ArrayList<Type>();
+	            superClasses.add(qualifiedIdentifier());
+	        }
+	        (
+	            <COMMA> { superClasses.add(qualifiedIdentifier()); }
+	        )* 
         ]
         interfaceBody = interfaceBody()           
     } 
@@ -562,7 +570,7 @@ private JInterfaceDecleration interfaceDecleration(ArrayList<String> mods): {
     }
     { 
         return new JInterfaceDecleration( line, mods, 
-            name, superClass, interfaceBody ); 
+            name, superClasses, interfaceBody ); 
     }
 }
 
@@ -1500,11 +1508,68 @@ private JExpression conditionalAndExpression(): {
 }
 {
     try {
-        lhs = equalityExpression() { line = lhs.line(); }
+        lhs = inclusiveOrExpression() { line = lhs.line(); }
         ( 
             <LAND>
-            rhs = equalityExpression()
+            rhs = inclusiveOrExpression()
             { lhs = new JLogicalAndOp( line, lhs, rhs ); }
+        )*
+    } 
+    catch ( ParseException e ) { 
+        recoverFromError( new int[] { SEMI, EOF }, e ); 
+    }
+    { return lhs; }
+}
+
+private JExpression inclusiveOrExpression(): {
+    int line = 0;
+    JExpression lhs = null, rhs = null;
+}
+{
+    try {
+        lhs = exclusiveOrExpression() { line = lhs.line(); }
+        ( 
+            <B_OR>
+            rhs = exclusiveOrExpression()
+            { lhs = new JBitwiseOrOp( line, lhs, rhs ); }
+        )*
+    } 
+    catch ( ParseException e ) { 
+        recoverFromError( new int[] { SEMI, EOF }, e ); 
+    }
+    { return lhs; }
+}
+
+private JExpression exclusiveOrExpression(): {
+    int line = 0;
+    JExpression lhs = null, rhs = null;
+}
+{
+    try {
+        lhs = andExpression() { line = lhs.line(); }
+        ( 
+            <B_XOR>
+            rhs = andExpression()
+            { lhs = new JBitwiseXorOp( line, lhs, rhs ); }
+        )*
+    } 
+    catch ( ParseException e ) { 
+        recoverFromError( new int[] { SEMI, EOF }, e ); 
+    }
+    { return lhs; }
+}
+
+private JExpression andExpression(): {
+    int line = 0;
+    JExpression lhs = null, rhs = null;
+}
+{
+    try {
+        lhs = equalityExpression() { line = lhs.line(); }
+        ( 
+            <B_AND>
+            rhs = equalityExpression()
+            { lhs = new JBitwiseAndOp( line, lhs, rhs ); }
         )*
     } 
     catch ( ParseException e ) { 
@@ -1562,18 +1627,54 @@ private JExpression relationalExpression(): {
 }
 {
     try {
-        lhs = additiveExpression() { line = lhs.line(); }
+        lhs = shiftExpression() { line = lhs.line(); }
         [ 
             <GT> 
-            rhs = additiveExpression()
+            rhs = shiftExpression()
             { lhs = new JGreaterThanOp( line, lhs, rhs ); } |
             <LE> 
-            rhs = additiveExpression()
+            rhs = shiftExpression()
             { lhs = new JLessEqualOp( line, lhs, rhs ); } |
             <INSTANCEOF> 
             type = referenceType()
             { lhs = new JInstanceOfOp( line, lhs, type ); }
         ]
+    } 
+    catch ( ParseException e ) { 
+        recoverFromError( new int[] { SEMI, EOF }, e ); 
+    }
+    { return lhs; }
+}
+
+
+/**
+ * 
+ * <pre>
+ * // level 4 shiftExpression ::= additiveExpression {(SL_SHIFT< | SR_SHIFT |
+ * UR_SHIFT) additiveExpression}
+ * 
+ * <pre>
+ *
+ * @return an AST for a shiftExpression.
+ */
+private JExpression shiftExpression(): {
+    int line = 0;
+    JExpression lhs = null, rhs = null;
+}
+{
+    try {
+        lhs = additiveExpression() { line = lhs.line(); } 
+        ( 
+            <SL_SHIFT> 
+            rhs = additiveExpression()
+            { lhs = new JSignedLeftShiftOp(line, lhs, rhs); } |
+            <SR_SHIFT> 
+            rhs = additiveExpression()
+            { lhs = new JSignedRightShiftOp(line, lhs, rhs); } |
+            <UR_SHIFT>
+            rhs = additiveExpression()
+            { lhs = new JUnsignedRightShiftOp(line, lhs, rhs); }
+        )*
     } 
     catch ( ParseException e ) { 
         recoverFromError( new int[] { SEMI, EOF }, e ); 
@@ -1635,7 +1736,13 @@ private JExpression multiplicativeExpression(): {
         ( 
             <STAR> 
             rhs = unaryExpression()
-            { lhs = new JMultiplyOp( line, lhs, rhs ); }
+            { lhs = new JMultiplyOp( line, lhs, rhs ); } |
+            <DIV>
+            rhs = unaryExpression()
+            { lhs = new JDivideOp( line, lhs, rhs ); } |
+            <REM>
+            rhs = unaryExpression()
+            { lhs = new JRemainderOp( line, lhs, rhs ); }
         )*
     } 
     catch ( ParseException e ) { 
@@ -1662,6 +1769,9 @@ private JExpression unaryExpression(): {
 }
 {
     try {
+    	<PLUS> { line = token.beginLine; }
+        unaryExpr = unaryExpression()
+        { expr = new JPositiveOp( line, unaryExpr ); } |
         <INC> { line = token.beginLine; }
         unaryExpr = unaryExpression()
         { expr = new JPreIncrementOp( line, unaryExpr ); } | 
@@ -1702,6 +1812,9 @@ private JExpression simpleUnaryExpression(): {
 }
 {
     try {
+    	<B_COMP> { line = token.beginLine; }
+   		unaryExpr = unaryExpression()
+        { expr = new JBitwiseComplementOp( line, unaryExpr ); } |
         <LNOT> { line = token.beginLine; }
         unaryExpr = unaryExpression()
         { expr = new JLogicalNotOp( line, unaryExpr ); } |

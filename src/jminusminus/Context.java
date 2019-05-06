@@ -267,6 +267,8 @@ class ClassContext extends Context {
 
     /** AST node of the type that this class represents. */
     private JAST definition;
+    
+    private boolean isInterface;
 
     /**
      * Construct a class context.
@@ -277,10 +279,11 @@ class ClassContext extends Context {
      *            the surrounding context(s).
      */
 
-    public ClassContext(JAST definition, Context surrounding) {
+    public ClassContext(JAST definition, Context surrounding, boolean isInterface) {
         super(surrounding, null, surrounding.compilationUnitContext());
         classContext = this;
         this.definition = definition;
+        this.isInterface = isInterface;
     }
 
     /**
@@ -291,6 +294,10 @@ class ClassContext extends Context {
 
     public JAST definition() {
         return definition;
+    }
+    
+    public boolean classIsInterface() {
+    	return isInterface;
     }
 
 }

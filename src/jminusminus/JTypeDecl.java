@@ -2,6 +2,8 @@
 
 package jminusminus;
 
+import java.util.ArrayList;
+
 /**
  * An interface supported by class (or later, interface) declarations.
  */

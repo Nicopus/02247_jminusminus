@@ -2,21 +2,17 @@
  * Interface.java
  */
 
-interface A extends B {
+interface A {
     public int f(int x);
 }
 
-interface B {
-    public int e(int x);
-}
-
-class C implements A {
+class B implements A {
     public int f(int x) {
         return x * x;
     }
 }
 
-class D implements A {
+class C implements A {
     public int f(int x) {
         return x * x * x;
     }

@@ -49,7 +49,22 @@ public class JConditionalExpression extends JExpression {
 	}
 	
 	public void codegen(CLEmitter output) {
-	
+        String elseLabel = output.createLabel();
+        String endLabel = output.createLabel();
+        //Go to elseLabel if condition is false
+        cond.codegen(output, elseLabel, false);
+        thenBranch.codegen(output);
+        
+        if (elseBranch != null) {
+        	//When thenPart done, jump  (over else elsePart) til after endLabel
+            output.addBranchInstruction(GOTO, endLabel);
+        }
+        // 
+        output.addLabel(elseLabel);
+        if (elseBranch != null) {
+        	elseBranch.codegen(output);
+            output.addLabel(endLabel);
+        }
 		
 	}
 }
