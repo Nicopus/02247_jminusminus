@@ -166,6 +166,11 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
                 .instanceFieldInitializations()) {
             field.codegenInitializations(output);
         }
+        
+        for (JBlock block : definingClass
+                .instanceBlockInitializations()) {
+            block.codegen(output);
+        }
         // And then the body
         body.codegen(output);
         output.addNoArgInstruction(RETURN);

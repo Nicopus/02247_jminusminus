@@ -15,6 +15,10 @@ public class JInitializationBlock extends JBlock implements JMember {
 		
 	}
 	
+	public boolean isStaticBlock() {
+		return isStatic;
+	}
+	
 	public JInitializationBlock analyze(Context context) {
 		super.analyze(context);
 		return this;
