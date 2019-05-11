@@ -54,22 +54,23 @@ public class JForEachStatement extends JStatement {
 	}
 	
     public JStatement analyze(Context context) {
-    	param.analyze(context);
-    	expr.analyze(context);
+    	LocalContext lContext = new LocalContext(context);
+    	param.analyze(lContext);
+    	expr.analyze(lContext);
+    	if (!Type.ITERABLE.isJavaAssignableFrom(expr.type()) && !expr.type().isArray()) {
+    		JAST.compilationUnit.reportSemanticError(line,
+                    "Local variable must be of type array or itterable: \"%s\"", expr.type().toString());
+        }
     	
-    	forInit.analyze(context);
-    	forCondition.analyze(context);
+    	param.type().mustMatchExpected(line, expr.type().componentType());
+    	
+    	forInit.analyze(lContext);
+    	forCondition.analyze(lContext);
     	forCondition.type().mustMatchExpected(line, Type.BOOLEAN);
-    	forUpdate.analyze(context);
-    	body.analyze(context);
+    	forUpdate.analyze(lContext);
+    	body.analyze(lContext);
 
-//    	
-//    	if (!Type.ITERABLE.isJavaAssignableFrom(expr.type()) && !expr.type().isArray()) {
-//    		JAST.compilationUnit.reportSemanticError(line,
-//                    "Local variable must be of type array or itterable: \"%s\"", expr.type().toString());
-//        }
-//    	
-//    	param.type().mustMatchExpected(line, expr.type().componentType());
+
     	return this;
     }
     

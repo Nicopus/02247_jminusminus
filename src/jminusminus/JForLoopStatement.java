@@ -20,17 +20,13 @@ public class JForLoopStatement extends JStatement {
 		this.body = body;
 	}
 	
-	public JForLoopStatement(int line) {
-		super(line);
-	}
-	
-	
     public JStatement analyze(Context context) {
-    	forInit.analyze(context);
-    	forCondition.analyze(context);
+    	LocalContext lContext = new LocalContext(context);
+    	forInit.analyze(lContext);
+    	forCondition.analyze(lContext);
     	forCondition.type().mustMatchExpected(line, Type.BOOLEAN);
-    	forUpdate.analyze(context);
-    	body.analyze(context);
+    	forUpdate.analyze(lContext);
+    	body.analyze(lContext);
     	return this;
     }
     

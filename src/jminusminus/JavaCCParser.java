@@ -847,8 +847,8 @@ class JavaCCParser implements JavaCCParserConstants {
     JBlock body2 = null;
     JExpression expr = null;
     JStatement expr2 = null;
-    JVariableDeclarator vdecl = null;
-    JVariableDeclaration vdecl2 = null;
+    JVariableDeclaration vdecl = null;
+        JFormalParameter param = null;
     JExpression iden = null;
     ArrayList<JFormalParameter> cParams = new ArrayList<JFormalParameter>();
     ArrayList<JBlock> cBlocks = new ArrayList<JBlock>();
@@ -916,25 +916,25 @@ class JavaCCParser implements JavaCCParserConstants {
           jj_consume_token(FOR);
                 line = token.beginLine;
           jj_consume_token(LPAREN);
-          vdecl = variableDeclarator(type());
+          param = formalParameter();
           jj_consume_token(COL);
           iden = expression();
           jj_consume_token(RPAREN);
           body = statement();
-          statement = new  JForEachStatement(line, vdecl, iden, body);
+          statement = new  JForEachStatement(line, param, iden, body);
         } else {
           switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
           case FOR:
             jj_consume_token(FOR);
                 line = token.beginLine;
             jj_consume_token(LPAREN);
-            vdecl2 = localVariableDeclarationStatement();
+            vdecl = localVariableDeclarationStatement();
             expr = expression();
             jj_consume_token(SEMI);
             expr2 = statementExpression();
             jj_consume_token(RPAREN);
             body = statement();
-          statement = new JForLoopStatement(line, vdecl2, expr, expr2, body);
+          statement = new JForLoopStatement(line, vdecl, expr, expr2, body);
             break;
           case TRY:
             jj_consume_token(TRY);

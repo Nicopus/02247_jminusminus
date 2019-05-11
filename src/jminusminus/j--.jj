@@ -870,8 +870,8 @@ private JStatement statement(): {
     JBlock body2 = null;
     JExpression expr = null;
     JStatement expr2 = null;
-    JVariableDeclarator vdecl = null;
-    JVariableDeclaration vdecl2 = null; 
+    JVariableDeclaration vdecl = null;
+  	JFormalParameter param = null;
     JExpression iden = null;
     ArrayList<JFormalParameter> cParams = new ArrayList<JFormalParameter>();
     ArrayList<JBlock> cBlocks = new ArrayList<JBlock>();
@@ -906,21 +906,21 @@ private JStatement statement(): {
         { statement = new JReturnStatement( line, expr ); } |
         LOOKAHEAD(<FOR> <LPAREN> (basicType() | referenceType()) <IDENTIFIER> <COL>)
         <FOR> { line = token.beginLine; } <LPAREN>
-        vdecl = variableDeclarator(type())
+        param = formalParameter()
         <COL>
         iden = expression()
         <RPAREN>
         body = statement()
-        { statement = new  JForEachStatement(line, vdecl, iden, body); } |
+        { statement = new  JForEachStatement(line, param, iden, body); } |
         <FOR> { line = token.beginLine; }
         <LPAREN>
-        vdecl2 = localVariableDeclarationStatement()
+        vdecl = localVariableDeclarationStatement()
         expr = expression()
         <SEMI>
         expr2 = statementExpression()
         <RPAREN>
         body = statement()
-        { statement = new JForLoopStatement(line, vdecl2, expr, expr2, body); } |
+        { statement = new JForLoopStatement(line, vdecl, expr, expr2, body); } |
         <TRY> { line = token.beginLine; }
         body2 = block()
         (
