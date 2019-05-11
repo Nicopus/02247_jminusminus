@@ -761,12 +761,12 @@ public class Parser {
 		} else if (have(FOR)) {
 			mustBe(LPAREN);
 			if (seeForEachStatement()) {
-				JVariableDeclarator vdecl = variableDeclarator(type());
+				JFormalParameter param = formalParameter();
 				mustBe(COL);
 				JExpression iden = expression();
 				mustBe(RPAREN);
 				JStatement body = statement();
-				return new JForEachStatement(line, vdecl, iden, body);
+				return new JForEachStatement(line, param, iden, body);
 			} else {
 				JVariableDeclaration vdecl = localVariableDeclarationStatement();
 				JExpression cexpr = expression();
@@ -1333,6 +1333,8 @@ public class Parser {
 		JExpression lhs = shiftExpression();
 		if (have(GT)) {
 			return new JGreaterThanOp(line, lhs, shiftExpression());
+		} else if (have(LT)) {
+			return new JLessOp(line, lhs, shiftExpression());
 		} else if (have(LE)) {
 			return new JLessEqualOp(line, lhs, shiftExpression());
 		} else if (have(INSTANCEOF)) {
@@ -1582,6 +1584,7 @@ public class Parser {
 				if (see(LPAREN)) {
 					return new JMessageExpression(line, newTarget, null, name, arguments());
 				} else {
+
 					return new JFieldSelection(line, newTarget, name);
 				}
 			}

@@ -30,7 +30,7 @@ class JLiteralDouble extends JExpression {
         } else if (d == 1.0) {
         	output.addNoArgInstruction(DCONST_1);
         } else {
-        	output.addNoArgInstruction(LDC2_W);
+        	output.addLDCInstruction(d);
         }
     }
 
